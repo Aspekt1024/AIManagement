@@ -2,27 +2,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Aspekt.AI;
 
-namespace AI
-{
     public class MoveToTargetAction : AIAction
     {
         public Transform target;
+
+        private MoveState moveState;
 
         public override bool CheckProceduralPrecondition()
         {
             return base.CheckProceduralPrecondition();
         }
 
-        public override void Enter()
+        public override void Enter(AIStateMachine stateMachine)
         {
+            base.Enter(stateMachine);
+
             target = GameObject.Find("Cube").transform;
-            RequiresMove = true;
+            
+            moveState = stateMachine.AddState<MoveState>();
+            moveState.SetTarget(target);
         }
 
         protected override void Update()
         {
-            Success();
+            // Use if target changes
+            //moveState.SetTarget(target);
         }
 
         protected override void SetPreconditions()
@@ -35,4 +41,3 @@ namespace AI
             AddEffect("Reached Target", true);
         }
     }
-}

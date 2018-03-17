@@ -3,20 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AI
+namespace Aspekt.AI
 {
     public abstract class AIAction
     {
-        private Dictionary<string, object> preconditions = new Dictionary<string, object>();
-        private Dictionary<string, object> effects = new Dictionary<string, object>();
-
-        public bool RequiresMove;
-        public bool RequiresAnimation;
-        
         public event Action OnFailure = delegate { };
         public event Action OnSuccess = delegate { };
 
+        private Dictionary<string, object> preconditions = new Dictionary<string, object>();
+        private Dictionary<string, object> effects = new Dictionary<string, object>();
         private bool isRunning;
+        private AIStateMachine stateMachine;
 
         public AIAction()
         {
@@ -24,7 +21,17 @@ namespace AI
             SetEffects();
         }
 
-        public abstract void Enter();
+        public virtual void Enter(AIStateMachine stateMachine)
+        {
+            this.stateMachine = stateMachine;
+            stateMachine.OnComplete += Success;
+        }
+
+        private void Exit()
+        {
+            stateMachine.OnComplete -= Success;
+        }
+
         protected abstract void Update();
         protected abstract void SetPreconditions();
         protected abstract void SetEffects();
@@ -69,6 +76,7 @@ namespace AI
 
         protected void Failure()
         {
+            Exit();
             if (OnFailure != null)
             {
                 OnFailure();
@@ -77,6 +85,7 @@ namespace AI
 
         protected void Success()
         {
+            Exit();
             if (OnSuccess != null)
             {
                 OnSuccess();

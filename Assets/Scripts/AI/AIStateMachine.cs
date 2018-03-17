@@ -1,13 +1,17 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AI
+namespace Aspekt.AI
 {
-    class AIStateMachine
+    public class AIStateMachine
     {
         private AIMachineState currentState;
-        private Queue<AIMachineState> stateQueue; 
+        private Queue<AIMachineState> stateQueue;
+        private AIAgent agent;
+
+        public event Action OnComplete = delegate { };
 
         private enum States
         {
@@ -15,8 +19,9 @@ namespace AI
         }
         private States state;
 
-        public AIStateMachine()
+        public AIStateMachine(AIAgent agent)
         {
+            this.agent = agent;
             stateQueue = new Queue<AIMachineState>();
             SetIdleState();
         }
@@ -40,9 +45,11 @@ namespace AI
             stateQueue.Enqueue(newState);
         }
 
-        public T CreateState<T>() where T : AIMachineState, new()
+        public T AddState<T>() where T: AIMachineState, new()
         {
             T newState = new T();
+            newState.SetParentAgent(agent);
+            Enqueue(newState);
             return newState;
         }
 
@@ -75,10 +82,10 @@ namespace AI
 
         private void SetIdleState()
         {
-            IdleState initialState = CreateState<IdleState>();
+            IdleState initialState = AddState<IdleState>();
             initialState.OnComplete += StateCompleted;
             initialState.Enter();
-            currentState = initialState;
+            currentState = stateQueue.Dequeue();
         }
 
         private void StateCompleted()
@@ -89,6 +96,7 @@ namespace AI
             }
             else
             {
+                if (OnComplete != null) OnComplete();
                 SetIdleState();
             }
         }

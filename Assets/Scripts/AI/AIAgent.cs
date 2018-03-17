@@ -1,8 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AI
+namespace Aspekt.AI
 {
     // TODO pause/unpause states when awaiting and receiving plan
     public class AIAgent : MonoBehaviour
@@ -12,9 +13,11 @@ namespace AI
         private List<AIGoal> goals;
         private List<AIAction> actions;
 
-        private AIAgentState agentState;
+        private AIMemory memory;
         private AIPlanner planner;
         private AIExecutor executor;
+
+        private AISensor[] sensors;
 
         private enum States
         {
@@ -25,9 +28,11 @@ namespace AI
         private void Awake()
         {
             Owner = GetComponentInParent<TestUnit>().gameObject;
-            agentState = new AIAgentState();
+            memory = new AIMemory();
             planner = new AIPlanner(this);
             executor = new AIExecutor(this);
+
+            sensors = GetComponentsInChildren<AISensor>();
 
             // TODO defined in editor
             goals = new List<AIGoal>();
@@ -104,6 +109,11 @@ namespace AI
         {
             return goals;
         }
+
+        public AIMemory GetMemory()
+        {
+            return memory;
+        }
         
         private void FindNewGoal()
         {
@@ -114,7 +124,7 @@ namespace AI
         {
             if (state != States.FindNewGoal) return;
             state = States.Active;
-            executor.ExecutePlan(planner.GetActionPlan());
+            executor.ExecutePlan(planner.GetActionPlan(), planner.GetGoal());
         }
     }
 }

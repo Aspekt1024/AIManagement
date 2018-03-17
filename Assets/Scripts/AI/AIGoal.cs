@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AI
+namespace Aspekt
 {
     public abstract class AIGoal
     {

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AI
+namespace Aspekt.AI
 {
     public class AIPlanner
     {
@@ -75,6 +75,11 @@ namespace AI
         public Queue<AIAction> GetActionPlan()
         {
             return actions;
+        }
+
+        public AIGoal GetGoal()
+        {
+            return currentGoal;
         }
     }
 }

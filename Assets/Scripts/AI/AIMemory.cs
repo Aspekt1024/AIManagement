@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AI
+namespace Aspekt.AI
 {
-    public class AIAgentState
+    public class AIMemory
     {
         private Dictionary<string, object> stateInfo = new Dictionary<string, object>();
 
-        public object ConditionMet(string label, object value)
+        public bool ConditionMet(string label, object value)
         {
             if (stateInfo.ContainsKey(label))
             {

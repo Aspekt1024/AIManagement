@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AI
+namespace Aspekt.AI
 {
     public class AIExecutor
     {
@@ -11,6 +11,7 @@ namespace AI
 
         private Queue<AIAction> actionPlan;
         private AIAction currentAction;
+        private AIGoal currentGoal;
         private AIStateMachine stateMachine;
         private AIAgent agent;
 
@@ -23,8 +24,7 @@ namespace AI
         public AIExecutor(AIAgent agent)
         {
             this.agent = agent;
-            stateMachine = new AIStateMachine();
-            stateMachine.Activate();
+            stateMachine = new AIStateMachine(agent);
         }
         
         public void Tick(float deltaTime)
@@ -47,13 +47,14 @@ namespace AI
 
         }
 
-        public void ExecutePlan(Queue<AIAction> newActionPlan)
+        public void ExecutePlan(Queue<AIAction> newActionPlan, AIGoal goal)
         {
             if (currentAction != null)
             {
                 stateMachine.Stop();
                 stateMachine.Activate();    // TODO.. stop activate should be simpler
             }
+            currentGoal = goal;
             actionPlan = newActionPlan;
             BeginNextAction();
         }
@@ -101,6 +102,12 @@ namespace AI
 
         private void BeginNextAction()
         {
+            if (currentAction != null)
+            {
+                currentAction.OnSuccess -= ActionSuccess;
+                currentAction.OnFailure -= ActionFailure;
+            }
+
             if (actionPlan.Count == 0)
             {
                 currentAction = null;
@@ -110,38 +117,47 @@ namespace AI
             else
             {
                 state = States.Running;
-                if (currentAction != null)
-                {
-                    currentAction.OnSuccess -= ActionSuccess;
-                    currentAction.OnFailure -= ActionFailure;
-                }
 
                 currentAction = actionPlan.Dequeue();
                 currentAction.OnSuccess += ActionSuccess;
                 currentAction.OnFailure += ActionFailure;
-                currentAction.Enter();
-                // TODO order matters... maybe find a better way to do this
-                if (currentAction.RequiresMove)
-                {
-                    MoveState newMoveState = new MoveState();
-                    newMoveState.SetParentAgent(agent);
-                    newMoveState.SetTarget(((MoveToTargetAction)currentAction).target);
-                    stateMachine.Enqueue(newMoveState);
-                }
+                currentAction.Enter(stateMachine);
             }
         }
 
         private void ActionSuccess()
         {
-            // apply action effects
-            // check if goal has been achieved
-            BeginNextAction();
+            foreach (var effect in currentAction.GetEffects())
+            {
+                agent.GetMemory().UpdateCondition(effect.Key, effect.Value);
+            }
+
+            bool goalAchieved = true;
+            foreach (var condition in currentGoal.GetConditions())
+            {
+                if (agent.GetMemory().ConditionMet(condition.Key, condition.Value) == false)
+                {
+                    goalAchieved = false;
+                    break;
+                }
+            }
+
+            if (goalAchieved)
+            {
+                Stop();
+                if (OnFinishedPlan != null) OnFinishedPlan();
+            }
+            else
+            {
+                BeginNextAction();
+            }
         }
 
         private void ActionFailure()
         {
             Debug.Log("Action failed: " + currentAction.ToString());
             Stop();
+            if (OnFinishedPlan != null) OnFinishedPlan();
         }
     }
 }

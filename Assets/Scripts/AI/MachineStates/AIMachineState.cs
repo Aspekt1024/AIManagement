@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AI
+namespace Aspekt.AI
 {
-    class AIMachineState : IAIMachineState
+    public class AIMachineState : IAIMachineState
     {
         protected AIAgent agent;
 
