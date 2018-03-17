@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace AI
 {
+    // TODO pause/unpause states when awaiting and receiving plan
     public class AIAgent : MonoBehaviour
     {
         public GameObject Owner;
@@ -12,8 +13,8 @@ namespace AI
         private List<AIAction> actions;
 
         private AIAgentState agentState;
-        private AIStateMachine stateMachine;
         private AIPlanner planner;
+        private AIExecutor executor;
 
         private enum States
         {
@@ -25,8 +26,8 @@ namespace AI
         {
             Owner = GetComponentInParent<TestUnit>().gameObject;
             agentState = new AIAgentState();
-            stateMachine = new AIStateMachine(this);
             planner = new AIPlanner(this);
+            executor = new AIExecutor(this);
 
             // TODO defined in editor
             goals = new List<AIGoal>();
@@ -36,12 +37,14 @@ namespace AI
             actions.Add(new MoveToTargetAction());
             // TODO end defined in editor
 
-            planner.OnPlannerIdle += FindNewGoal;
+            executor.OnFinishedPlan += FindNewGoal;
+            planner.OnActionPlanFound += PlanFound;
         }
 
         private void OnDestroy()
         {
-            planner.OnPlannerIdle -= FindNewGoal;
+            executor.OnFinishedPlan -= FindNewGoal;
+            planner.OnActionPlanFound -= PlanFound;
         }
 
         private void Update()
@@ -49,8 +52,7 @@ namespace AI
             switch (state)
             {
                 case States.Active:
-                    stateMachine.Tick(Time.deltaTime);
-                    planner.Run();
+                    executor.Tick(Time.deltaTime);
                     break;
                 case States.Paused:
                     break;
@@ -58,7 +60,6 @@ namespace AI
                     break;
                 case States.FindNewGoal:
                     planner.CalculateNewGoal();
-                    state = States.Active;
                     break;
                 default:
                     break;
@@ -68,21 +69,29 @@ namespace AI
         public void Activate()
         {
             if (state == States.Active) return;
-            stateMachine.Activate();
-            state = States.Active;
+            state = States.FindNewGoal;
+        }
+
+        public void Unpause()
+        {
+            if (state == States.Paused)
+            {
+                executor.Unpause();
+                state = States.Active;
+            }
         }
 
         public void Stop()
         {
             if (state == States.Stopped) return;
-            stateMachine.Stop();
+            executor.Stop();
             state = States.Stopped;
         }
 
         public void Pause()
         {
-            if (state == States.Paused || state == States.Stopped) return;
-            stateMachine.Pause();
+            if (state != States.Active) return;
+            executor.Pause();
             state = States.Paused;
         }
 
@@ -99,6 +108,13 @@ namespace AI
         private void FindNewGoal()
         {
             state = States.FindNewGoal;
+        }
+
+        private void PlanFound()
+        {
+            if (state != States.FindNewGoal) return;
+            state = States.Active;
+            executor.ExecutePlan(planner.GetActionPlan());
         }
     }
 }

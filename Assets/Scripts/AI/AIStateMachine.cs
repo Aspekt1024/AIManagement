@@ -6,8 +6,6 @@ namespace AI
 {
     class AIStateMachine
     {
-        private AIAgent agent;
-
         private AIMachineState currentState;
         private Queue<AIMachineState> stateQueue; 
 
@@ -17,16 +15,14 @@ namespace AI
         }
         private States state;
 
-        public AIStateMachine(AIAgent agent)
+        public AIStateMachine()
         {
-            this.agent = agent;
             stateQueue = new Queue<AIMachineState>();
             SetIdleState();
         }
 
         public void Tick(float deltaTime)
         {
-            Debug.Log("Tick for " + currentState.ToString());
             if (currentState.GetType().Equals(typeof(IdleState)) && stateQueue.Count > 0)
             {
                 GotoNextState();
@@ -47,7 +43,6 @@ namespace AI
         public T CreateState<T>() where T : AIMachineState, new()
         {
             T newState = new T();
-            newState.SetParentAgent(agent);
             return newState;
         }
 
@@ -81,7 +76,6 @@ namespace AI
         private void SetIdleState()
         {
             IdleState initialState = CreateState<IdleState>();
-            initialState.SetParentAgent(agent);
             initialState.OnComplete += StateCompleted;
             initialState.Enter();
             currentState = initialState;

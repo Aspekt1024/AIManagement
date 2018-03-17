@@ -9,11 +9,11 @@ namespace AI
     {
         protected AIAgent agent;
 
-        public void SetParentAgent(AIAgent parentAgent)
+        public void SetParentAgent(AIAgent agent)
         {
-            agent = parentAgent;
+            this.agent = agent;
         }
-        
+
         public virtual void Tick(float deltaTime)
         {
 

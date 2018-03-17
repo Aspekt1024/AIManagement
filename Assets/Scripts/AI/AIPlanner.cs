@@ -12,14 +12,13 @@ namespace AI
         private Queue<AIAction> actions = new Queue<AIAction>();
 
         private AIGoal currentGoal;
-        private AIAction currentAction;
+
+        public event Action OnActionPlanFound = delegate { };
 
         public AIPlanner (AIAgent agent)
         {
             this.agent = agent;
         }
-
-        public event Action OnPlannerIdle = delegate { };
 
         public void CalculateNewGoal()
         {
@@ -66,53 +65,16 @@ namespace AI
                     break;
                 }
             }
-        }
 
-        public void Run()
-        {
-            if (currentAction == null)
+            if (actions.Count > 0 && OnActionPlanFound != null)
             {
-                SelectNextAction();
-            }
-            else
-            {
-                currentAction.Run();
-            }
-        }
-        
-        private void SelectNextAction()
-        {
-            if (actions.Count == 0)
-            {
-                currentAction = null;
-                if (OnPlannerIdle != null) OnPlannerIdle();
-            }
-            else
-            {
-                if (currentAction != null)
-                {
-                    currentAction.OnSuccess -= ActionSuccess;
-                    currentAction.OnFailure -= ActionFailure;
-                }
-
-                currentAction = actions.Dequeue();
-                currentAction.OnSuccess += ActionSuccess;
-                currentAction.OnFailure += ActionFailure;
-                currentAction.Run();
+                OnActionPlanFound();
             }
         }
 
-        private void ActionSuccess()
+        public Queue<AIAction> GetActionPlan()
         {
-            SelectNextAction();
-
-            // TODO apply effects of action
-            // Check if goal has succeeded
-        }
-
-        private void ActionFailure()
-        {
-
+            return actions;
         }
     }
 }

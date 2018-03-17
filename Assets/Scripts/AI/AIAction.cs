@@ -9,17 +9,23 @@ namespace AI
     {
         private Dictionary<string, object> preconditions = new Dictionary<string, object>();
         private Dictionary<string, object> effects = new Dictionary<string, object>();
+
+        public bool RequiresMove;
+        public bool RequiresAnimation;
         
         public event Action OnFailure = delegate { };
         public event Action OnSuccess = delegate { };
+
+        private bool isRunning;
 
         public AIAction()
         {
             SetPreconditions();
             SetEffects();
         }
-        
-        public abstract void Run();
+
+        public abstract void Enter();
+        protected abstract void Update();
         protected abstract void SetPreconditions();
         protected abstract void SetEffects();
 
@@ -27,7 +33,7 @@ namespace AI
         {
             if (CheckProceduralPrecondition())
             {
-                Run();
+                Update();
             }
             else
             {
