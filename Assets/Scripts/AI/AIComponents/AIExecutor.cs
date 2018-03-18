@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Aspekt.AI
 {
@@ -63,7 +61,7 @@ namespace Aspekt.AI
         {
             if (state == States.Stopped)
             {
-                Debug.Log("Already stopped");
+                AILogger.CreateMessage("Already stopped", agent);
             }
             else
             {
@@ -83,7 +81,7 @@ namespace Aspekt.AI
             }
             else
             {
-                Debug.Log("Cannot Pause when not running. Current state = " + state.ToString());
+                AILogger.CreateMessage("Cannot Pause when not running. Current state = " + state.ToString(), agent);
             }
         }
 
@@ -96,18 +94,12 @@ namespace Aspekt.AI
             }
             else
             {
-                Debug.Log("Error, cannot unpause from non-paused state. Current state = " + state.ToString());
+                AILogger.CreateMessage("Error, cannot unpause from non-paused state. Current state = " + state.ToString(), agent);
             }
         }
 
         private void BeginNextAction()
         {
-            if (currentAction != null)
-            {
-                currentAction.OnSuccess -= ActionSuccess;
-                currentAction.OnFailure -= ActionFailure;
-            }
-
             if (actionPlan.Count == 0)
             {
                 currentAction = null;
@@ -119,9 +111,7 @@ namespace Aspekt.AI
                 state = States.Running;
 
                 currentAction = actionPlan.Dequeue();
-                currentAction.OnSuccess += ActionSuccess;
-                currentAction.OnFailure += ActionFailure;
-                currentAction.Enter(stateMachine);
+                currentAction.Enter(stateMachine, ActionSuccess, ActionFailure);
             }
         }
 
@@ -155,7 +145,7 @@ namespace Aspekt.AI
 
         private void ActionFailure()
         {
-            Debug.Log("Action failed: " + currentAction.ToString());
+            AILogger.CreateMessage("Action failed: " + currentAction.ToString(), agent);
             Stop();
             if (OnFinishedPlan != null) OnFinishedPlan();
         }

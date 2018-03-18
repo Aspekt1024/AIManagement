@@ -1,19 +1,19 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Aspekt.AI
 {
     public abstract class AIAction
     {
-        public event Action OnFailure = delegate { };
-        public event Action OnSuccess = delegate { };
+        public float Cost = 1f;
+
+        protected AIStateMachine stateMachine;
 
         private Dictionary<string, object> preconditions = new Dictionary<string, object>();
         private Dictionary<string, object> effects = new Dictionary<string, object>();
-        private bool isRunning;
-        private AIStateMachine stateMachine;
+
+        private Action SuccessCallback;
+        private Action FailureCallback;
 
         public AIAction()
         {
@@ -21,15 +21,15 @@ namespace Aspekt.AI
             SetEffects();
         }
 
-        public virtual void Enter(AIStateMachine stateMachine)
+        public virtual void Enter(AIStateMachine stateMachine, Action SuccessCallback, Action FailureCallback)
         {
             this.stateMachine = stateMachine;
-            stateMachine.OnComplete += Success;
+            this.SuccessCallback = SuccessCallback;
+            this.FailureCallback = FailureCallback;
         }
 
-        private void Exit()
+        protected virtual void Exit()
         {
-            stateMachine.OnComplete -= Success;
         }
 
         protected abstract void Update();
@@ -77,19 +77,13 @@ namespace Aspekt.AI
         protected void Failure()
         {
             Exit();
-            if (OnFailure != null)
-            {
-                OnFailure();
-            }
+            FailureCallback.Invoke();
         }
 
         protected void Success()
         {
             Exit();
-            if (OnSuccess != null)
-            {
-                OnSuccess();
-            }
+            SuccessCallback.Invoke();
         }
     }
 }

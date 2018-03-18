@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2015
+# Visual Studio 2017
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIManagement", "AIManagement.csproj", "{F6C79A96-7827-F382-5299-3E759222B036}"
 EndProject
 Global

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Aspekt.AI;
 
 public class TestUnit : MonoBehaviour {

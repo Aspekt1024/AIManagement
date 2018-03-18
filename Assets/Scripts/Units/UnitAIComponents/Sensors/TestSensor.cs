@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Aspekt.AI;
+using TestUnitLabels;
 
 public class TestSensor : AISensor {
 
@@ -15,7 +14,7 @@ public class TestSensor : AISensor {
         Transform target = GameObject.Find("Cube").transform;
         if (Vector3.Distance(target.position, agent.transform.position) > 4f)
         {
-            agent.GetMemory().UpdateCondition("Reached Target", false);
+            agent.GetMemory().UpdateCondition(AILabels.TargetReached.ToString(), false);
         }
     }
 }

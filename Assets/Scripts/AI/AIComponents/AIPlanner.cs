@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Aspekt.AI
 {
@@ -35,7 +33,7 @@ namespace Aspekt.AI
                     break;
                 }
 
-                if (condition.Value == null) { Debug.Log("Goal has no conditions"); return; }
+                if (condition.Value == null) { AILogger.CreateMessage("Goal has no conditions", agent); return; }
 
                 // Check each action, see if it fulfills the goal
                 // if not, check actions and see if they fulfil the preconditions

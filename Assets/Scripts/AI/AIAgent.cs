@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Aspekt.AI
@@ -8,6 +6,7 @@ namespace Aspekt.AI
     // TODO pause/unpause states when awaiting and receiving plan
     public class AIAgent : MonoBehaviour
     {
+        public bool LoggingEnabled = true;
         public GameObject Owner;
 
         private List<AIGoal> goals;
