@@ -10,18 +10,40 @@ public class AIAgentProfile : ScriptableObject
     
     public void AddGoal(string goalName, float priority)
     {
-        var newGoal = new AIGoalSerializable() { goalName = goalName, priority = priority };
-        if (Goals.Contains(newGoal)) return;
+        bool goalExists = false;
+        foreach (var goal in Goals)
+        {
+            if (goal.goalName == goalName)
+            {
+                goalExists = true;
+                break;
+            }
+        }
 
-        Goals.Add(newGoal);
+        if (!goalExists)
+        {
+            var newGoal = new AIGoalSerializable() { goalName = goalName, priority = priority };
+            Goals.Add(newGoal);
+        }
     }
 
     public void AddAction(string actionName, float cost)
     {
-        var newAction = new AIActionSerializable() { actionName = actionName, cost = cost };
-        if (Actions.Contains(newAction)) return;
+        bool actionExists = false;
+        foreach (var action in Actions)
+        {
+            if (action.actionName == actionName)
+            {
+                actionExists = true;
+                break;
+            }
+        }
 
-        Actions.Add(newAction);
+        if (!actionExists)
+        {
+            var newAction = new AIActionSerializable() { actionName = actionName, cost = cost };
+            Actions.Add(newAction);
+        }
     }
 
     [System.Serializable]
