@@ -8,6 +8,7 @@ namespace Aspekt.AI
     {
         public bool LoggingEnabled = true;
         public GameObject Owner;
+        public AIAgentProfile Profile;
 
         private List<AIGoal> goals;
         private List<AIAction> actions;
@@ -33,13 +34,8 @@ namespace Aspekt.AI
 
             sensors = GetComponentsInChildren<AISensor>();
 
-            // TODO defined in editor
-            goals = new List<AIGoal>();
-            goals.Add(new FollowTargetGoal());
-
-            actions = new List<AIAction>();
-            actions.Add(new MoveToTargetAction());
-            // TODO end defined in editor
+            goals = AIProfileLoader.GetGoals(Profile);
+            actions = AIProfileLoader.GetActions(Profile);
 
             executor.OnFinishedPlan += FindNewGoal;
             planner.OnActionPlanFound += PlanFound;
