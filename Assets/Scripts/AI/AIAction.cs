@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Aspekt.AI
 {
-    public abstract class AIAction
+    public abstract class AIAction : MonoBehaviour
     {
         public float Cost = 1f;
 
@@ -19,6 +20,11 @@ namespace Aspekt.AI
         {
             SetPreconditions();
             SetEffects();
+        }
+
+        public override string ToString()
+        {
+            return GetType().ToString();
         }
 
         public virtual void Enter(AIStateMachine stateMachine, Action SuccessCallback, Action FailureCallback)

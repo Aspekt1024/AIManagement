@@ -8,10 +8,11 @@ namespace Aspekt.AI
     {
         public bool LoggingEnabled = true;
         public GameObject Owner;
-        public AIAgentProfile Profile;
+        public GameObject GoalsObject;
+        public GameObject ActionsObject;
 
-        private List<AIGoal> goals;
-        private List<AIAction> actions;
+        private AIGoal[] goals;
+        private AIAction[] actions;
 
         private AIMemory memory;
         private AIPlanner planner;
@@ -34,8 +35,8 @@ namespace Aspekt.AI
 
             sensors = GetComponentsInChildren<AISensor>();
 
-            goals = AIProfileLoader.GetGoals(Profile);
-            actions = AIProfileLoader.GetActions(Profile);
+            goals = GoalsObject.GetComponents<AIGoal>();
+            actions = ActionsObject.GetComponents<AIAction>();
 
             executor.OnFinishedPlan += FindNewGoal;
             planner.OnActionPlanFound += PlanFound;
@@ -95,12 +96,12 @@ namespace Aspekt.AI
             state = States.Paused;
         }
 
-        public List<AIAction> GetActions()
+        public AIAction[] GetActions()
         {
             return actions;
         }
 
-        public List<AIGoal> GetGoals()
+        public AIGoal[] GetGoals()
         {
             return goals;
         }

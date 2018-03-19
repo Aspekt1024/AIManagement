@@ -14,10 +14,6 @@ public class AIAgentInspector : Editor {
 
     private AIAgent agent;
 
-    private bool newProfileClicked;
-    private bool showProfileNameError;
-    private string newProfileName = "";
-
     private int selectedGoalIndex;
     private int selectedActionIndex;
 
@@ -27,178 +23,156 @@ public class AIAgentInspector : Editor {
 
         if (EditorGUILayout.Foldout(true, "Agent Profile"))
         {
-            if (newProfileClicked)
-            {
-                DisplayNewProfileOptions();
-            }
-            else
-            {
-                DisplayProfileInfo();
-            }
-        }
-
-        EditorGUILayout.Separator();
-        agent.LoggingEnabled = EditorGUILayout.Toggle(new GUIContent("Logging Enabled", "Enable to show logging of the AI"), agent.LoggingEnabled);
-        
-    }
-
-    private void DisplayNewProfileOptions()
-    {
-        newProfileName = EditorGUILayout.TextField("New Profile Name", newProfileName);
-        
-        EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("Create"))
-        {
-            showProfileNameError = false;
-            if (NewProfileNameIsValid(newProfileName))
-            {
-                CreateNewProfile(newProfileName);
-            }
-            else
-            {
-                showProfileNameError = true;
-            }
-        }
-        if (GUILayout.Button("Cancel"))
-        {
-            showProfileNameError = false;
-            newProfileClicked = false;
-        }
-        EditorGUILayout.EndHorizontal();
-
-        if (showProfileNameError)
-        {
-            EditorGUILayout.HelpBox("'" + newProfileName + "' is not a valid name. It must be unique and non-empty", MessageType.Error);
-        }
-    }
-
-    private bool NewProfileNameIsValid(string profileName)
-    {
-        if (profileName == "") return false;
-        // TODO check all existing AIAgentProfile in the assembly. If their names are all different, return true, else return false
-        return true;
-    }
-
-    private void DisplayProfileInfo()
-    {
-        agent.Profile = (AIAgentProfile)EditorGUILayout.ObjectField(agent.Profile, typeof(AIAgentProfile), false);
-
-        if (agent.Profile == null)
-        {
-            EditorGUILayout.HelpBox("The profile has not been set", MessageType.Info);
-            
-            if (GUILayout.Button("Create New Profile"))
-            {
-                newProfileClicked = true;
-            }
-        }
-        else
-        {
             DisplayGoals();
             EditorGUILayout.Space();
             DisplayActions();
         }
+
+        EditorGUILayout.Separator();
+        EditorGUIUtility.labelWidth = 0;
+        agent.LoggingEnabled = EditorGUILayout.Toggle(new GUIContent("Logging Enabled", "Enable to show logging of the AI"), agent.LoggingEnabled);
     }
 
     private void DisplayGoals()
     {
+        if (agent.GoalsObject == null)
+        {
+            agent.GoalsObject = ObtainChildObject("Goals");
+        }
+
+        AIGoal[] goals = agent.GoalsObject.GetComponents<AIGoal>();
+
         EditorGUILayout.LabelField("Goals:", EditorStyles.boldLabel);
-        if (agent.Profile.Goals == null || agent.Profile.Goals.Count == 0)
+        if (goals == null || goals.Length == 0)
         {
             EditorGUILayout.HelpBox("You should select at least one goal in order for the AIAgent to do anything!", MessageType.Warning);
         }
         else
         {
-            var goalToRemove = new AIAgentProfile.AIGoalSerializable();
-            for (int i = 0; i < agent.Profile.Goals.Count; i++)
+            AIGoal goalToRemove = null;
+            for (int i = 0; i < goals.Length; i++)
             {
-                var goal = agent.Profile.Goals[i];
-
                 EditorGUILayout.BeginHorizontal();
                 EditorGUIUtility.labelWidth = 50f;
-                EditorGUILayout.LabelField(goal.goalName);
+                EditorGUILayout.LabelField(goals[i].ToString());
 
-                goal.priority = Mathf.Clamp(EditorGUILayout.FloatField("Priority", goal.priority), 0, float.MaxValue);
+                goals[i].Priority = Mathf.Clamp(EditorGUILayout.FloatField("Priority", goals[i].Priority), 0, float.MaxValue);
 
                 if (GUILayout.Button("Remove"))
                 {
-                    goalToRemove = goal;
+                    goalToRemove = goals[i];
                 }
                 EditorGUILayout.EndHorizontal();
                 EditorGUILayout.Space();
-
-                agent.Profile.Goals[i] = goal;
             }
 
-            if (goalToRemove.goalName != null && goalToRemove.goalName != "")
+            if (goalToRemove != null)
             {
-                agent.Profile.Goals.Remove(goalToRemove);
+                DestroyImmediate(goalToRemove);
             }
         }
 
         EditorGUILayout.BeginHorizontal();
         
-        string[] allTypes = (from System.Type type in Assembly.GetAssembly(typeof(AIGoal)).GetTypes() where type.IsSubclassOf(typeof(AIGoal)) select type.ToString()).ToArray();
+        System.Type[] allTypes = (from System.Type type in Assembly.GetAssembly(typeof(AIGoal)).GetTypes() where type.IsSubclassOf(typeof(AIGoal)) select type).ToArray();
+        string[] allTypesStringArray = (from System.Type type in allTypes select type.ToString()).ToArray();
 
-        selectedGoalIndex = EditorGUILayout.Popup(selectedGoalIndex, allTypes);
+        selectedGoalIndex = EditorGUILayout.Popup(selectedGoalIndex, allTypesStringArray);
         if (GUILayout.Button("Add selected goal"))
         {
-            agent.Profile.AddGoal(allTypes[selectedGoalIndex], 1);
+            if (!ComponentExists(goals, allTypes[selectedGoalIndex]))
+            {
+                AIGoal newGoal = (AIGoal)agent.GoalsObject.AddComponent(allTypes[selectedGoalIndex]);
+                newGoal.Priority = 1;
+            }
         }
         EditorGUILayout.EndHorizontal();
     }
-
+    
     private void DisplayActions()
     {
-        EditorGUILayout.LabelField("Actions:", EditorStyles.boldLabel);
+        if (agent.ActionsObject == null)
+        {
+            agent.ActionsObject = ObtainChildObject("Actions");
+        }
 
-        if (agent.Profile.Actions == null || agent.Profile.Actions.Count == 0)
+        AIAction[] actions = agent.ActionsObject.GetComponents<AIAction>();
+
+        EditorGUILayout.LabelField("Actions:", EditorStyles.boldLabel);
+        if (actions == null || actions.Length == 0)
         {
             EditorGUILayout.HelpBox("Without any actions, the AIAgent won't do anything!", MessageType.Warning);
         }
         else
         {
-            var actionToRemove = new AIAgentProfile.AIActionSerializable();
-            for (int i = 0; i < agent.Profile.Actions.Count; i++)
+            AIAction actionToRemove = null;
+            for (int i = 0; i < actions.Length; i++)
             {
-                var action = agent.Profile.Actions[i];
-
                 EditorGUILayout.BeginHorizontal();
                 EditorGUIUtility.labelWidth = 50f;
-                EditorGUILayout.LabelField(action.actionName);
+                EditorGUILayout.LabelField(actions[i].ToString());
 
-                action.cost = EditorGUILayout.FloatField("Cost", action.cost);
+                actions[i].Cost = Mathf.Clamp(EditorGUILayout.FloatField("Cost", actions[i].Cost), 0, float.MaxValue);
 
                 if (GUILayout.Button("Remove"))
                 {
-                    actionToRemove = action;
+                    actionToRemove = actions[i];
                 }
                 EditorGUILayout.EndHorizontal();
                 EditorGUILayout.Space();
-
-                agent.Profile.Actions[i] = action;
             }
 
-            if (actionToRemove.actionName != null && actionToRemove.actionName != "")
+            if (actionToRemove != null)
             {
-                agent.Profile.Actions.Remove(actionToRemove);
+                DestroyImmediate(actionToRemove);
             }
         }
 
         EditorGUILayout.BeginHorizontal();
 
-        string[] allTypes = (from System.Type type in Assembly.GetAssembly(typeof(AIAction)).GetTypes() where type.IsSubclassOf(typeof(AIAction)) select type.ToString()).ToArray();
+        System.Type[] allTypes = (from System.Type type in Assembly.GetAssembly(typeof(AIAction)).GetTypes() where type.IsSubclassOf(typeof(AIAction)) select type).ToArray();
+        string[] allTypesStringArray = (from System.Type type in allTypes select type.ToString()).ToArray();
 
-        selectedActionIndex = EditorGUILayout.Popup(selectedActionIndex, allTypes);
+        selectedActionIndex = EditorGUILayout.Popup(selectedActionIndex, allTypesStringArray);
         if (GUILayout.Button("Add selected action"))
         {
-            agent.Profile.AddAction(allTypes[selectedActionIndex], 1);
+            if (!ComponentExists(actions, allTypes[selectedActionIndex]))
+            {
+                AIAction newAction = (AIAction)agent.ActionsObject.AddComponent(allTypes[selectedActionIndex]);
+                newAction.Cost = 1;
+            }
         }
         EditorGUILayout.EndHorizontal();
     }
-
-    private void CreateNewProfile(string ProfileName)
+    
+    private GameObject ObtainChildObject(string objectName)
     {
+        Transform[] children = agent.GetComponentsInChildren<Transform>();
+        for (int i = 0; i < children.Length; i++)
+        {
+            if (children[i].name == objectName)
+            {
+                return children[i].gameObject;
+            }
+        }
 
+        GameObject childObject = new GameObject(objectName);
+        childObject.transform.SetParent(agent.transform);
+
+        return childObject;
+    }
+    
+    private bool ComponentExists(object[] existingObjects, System.Type newType)
+    {
+        bool objectExists = false;
+        for (int i = 0; i < existingObjects.Length; i++)
+        {
+            if (existingObjects[i].GetType() == newType)
+            {
+                objectExists = true;
+                break;
+            }
+        }
+        return objectExists;
     }
 }

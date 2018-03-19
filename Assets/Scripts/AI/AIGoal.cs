@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Aspekt.AI
 {
-    public abstract class AIGoal
+    public abstract class AIGoal : MonoBehaviour
     {
         public float Priority = 1f;
 
@@ -18,11 +19,17 @@ namespace Aspekt.AI
             return goal;
         }
 
-        protected abstract void SetConditions();
+        public override string ToString()
+        {
+            return GetType().ToString();
+        }
+
+        protected virtual void SetConditions() { }
 
         protected void AddCondition(string label, object value)
         {
             goal.Add(label, value);
         }
+
     }
 }

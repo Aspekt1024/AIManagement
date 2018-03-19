@@ -20,7 +20,9 @@ namespace Aspekt.AI
 
         public void CalculateNewGoal()
         {
-            if (agent.GetGoals().Count == 0) return;
+            AILogger.CreateMessage("logging new goal", agent);
+
+            if (agent.GetGoals().Length == 0) return;
 
             bool goalAchievable = false;
             foreach (AIGoal goal in agent.GetGoals())
