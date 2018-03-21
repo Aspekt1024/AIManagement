@@ -6,13 +6,13 @@ namespace Aspekt.AI
 {
     public class AIMemory
     {
-        private Dictionary<string, object> stateInfo = new Dictionary<string, object>();
+        private Dictionary<string, object> state = new Dictionary<string, object>();
 
         public bool ConditionMet(string label, object value)
         {
-            if (stateInfo.ContainsKey(label))
+            if (state.ContainsKey(label))
             {
-                return stateInfo[label] == value;
+                return state[label] == value;
             }
             else
             {
@@ -22,14 +22,24 @@ namespace Aspekt.AI
 
         public void UpdateCondition(string label, object newValue)
         {
-            if (stateInfo.ContainsKey(label))
+            if (state.ContainsKey(label))
             {
-                stateInfo[label] = newValue;
+                state[label] = newValue;
             }
             else
             {
-                stateInfo.Add(label, newValue);
+                state.Add(label, newValue);
             }
+        }
+
+        public Dictionary<string, object> GetState()
+        {
+            return state;
+        }
+
+        public Dictionary<string, object> CloneState()
+        {
+            return new Dictionary<string, object>(state);
         }
     }
 }

@@ -3,12 +3,7 @@ using Aspekt.AI;
 using TestUnitLabels;
 
 public class TestSensor : AISensor {
-
-    public TestSensor(AIAgent agent) : base(agent)
-    {
-        this.agent = agent;
-    }
-
+    
     private void Update()
     {
         Transform target = GameObject.Find("Cube").transform;

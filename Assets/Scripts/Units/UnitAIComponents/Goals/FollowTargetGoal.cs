@@ -1,5 +1,6 @@
 ﻿using Aspekt.AI;
 using TestUnitLabels;
+using UnityEngine;
 
 public class FollowTargetGoal : AIGoal
 {
@@ -7,5 +8,4 @@ public class FollowTargetGoal : AIGoal
     {
         AddCondition(AILabels.TargetReached.ToString(), true);
     }
-
 }

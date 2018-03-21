@@ -7,16 +7,16 @@ namespace Aspekt.AI
     {
         public float Priority = 1f;
 
-        private Dictionary<string, object> goal = new Dictionary<string, object>();
-
-        public AIGoal()
+        private Dictionary<string, object> conditions = new Dictionary<string, object>();
+        
+        private void Awake()
         {
             SetConditions();
         }
-
+        
         public Dictionary<string, object> GetConditions()
         {
-            return goal;
+            return conditions;
         }
 
         public override string ToString()
@@ -28,7 +28,7 @@ namespace Aspekt.AI
 
         protected void AddCondition(string label, object value)
         {
-            goal.Add(label, value);
+            conditions.Add(label, value);
         }
 
     }

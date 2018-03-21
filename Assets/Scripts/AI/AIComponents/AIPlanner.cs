@@ -1,15 +1,16 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
+using Aspekt.AI.Planning;
 
 namespace Aspekt.AI
 {
     public class AIPlanner
     {
         private AIAgent agent;
-
-        private Queue<AIAction> actions = new Queue<AIAction>();
-
         private AIGoal currentGoal;
+        private Queue<AIAction> actions = new Queue<AIAction>();
+        private AIAStar aStar = new AIAStar();
 
         public event Action OnActionPlanFound = delegate { };
 
@@ -20,49 +21,25 @@ namespace Aspekt.AI
 
         public void CalculateNewGoal()
         {
-            AILogger.CreateMessage("logging new goal", agent);
+            AILogger.CreateMessage("Calculating new goal.", agent);
 
-            if (agent.GetGoals().Length == 0) return;
-
-            bool goalAchievable = false;
-            foreach (AIGoal goal in agent.GetGoals())
+            List<AIGoal> goals = new List<AIGoal>(agent.GetGoals());
+            goals.Sort((x, y) => x.Priority.CompareTo(y.Priority));
+            
+            if (goals.Count == 0) return;
+            
+            for (int i = 0; i < goals.Count; i++)
             {
-                // Start with a single condition, then expand to multiple conditions later
-                KeyValuePair<string, object> condition = new KeyValuePair<string, object>();
-                foreach (KeyValuePair<string, object> c in goal.GetConditions())
+                currentGoal = goals[i];
+                if (!GoalAchieveableByActions(currentGoal)) continue;
+
+                if (aStar.FindActionPlan(agent, this))
                 {
-                    condition = c;
-                    break;
+                    actions = aStar.GetActionPlan();
                 }
-
-                if (condition.Value == null) { AILogger.CreateMessage("Goal has no conditions", agent); return; }
-
-                // Check each action, see if it fulfills the goal
-                // if not, check actions and see if they fulfil the preconditions
-                // need to check the agent state
-                foreach (AIAction action in agent.GetActions())
+                else
                 {
-                    // For now, assume preconditions are met
-                    if (action.GetEffects().Count > 0)
-                    {
-                        if (action.GetEffects().ContainsKey(condition.Key))
-                        {
-                            if (action.GetEffects()[condition.Key].Equals(condition.Value))
-                            {
-                                // Act like there's only one action for now
-                                goalAchievable = true;
-                                actions.Enqueue(action);
-                                break;
-                            }
-                        }
-                    }
-                    if (goalAchievable) break;
-                }
-
-                if (goalAchievable)
-                {
-                    currentGoal = goal;
-                    break;
+                    AILogger.CreateMessage("failed to find action plan.", agent);
                 }
             }
 
@@ -80,6 +57,41 @@ namespace Aspekt.AI
         public AIGoal GetGoal()
         {
             return currentGoal;
+        }
+
+        private bool GoalAchieveableByActions(AIGoal goal)
+        {
+            // Note that this won't check if each action's preconditions will be met.
+            // This will be calculated by aStar
+
+            Dictionary<string, bool> conditionsMet = new Dictionary<string, bool>();
+            foreach (var condition in goal.GetConditions())
+            {
+                conditionsMet.Add(condition.Key, false);
+            }
+
+            foreach (var stateValue in agent.GetMemory().GetState())
+            {
+                if (conditionsMet.ContainsKey(stateValue.Key) && conditionsMet[stateValue.Key].Equals(goal.GetConditions()[stateValue.Key]))
+                {
+                    conditionsMet[stateValue.Key] = true;
+                }
+            }
+
+            foreach (var action in agent.GetActions())
+            {
+                if (!action.CheckProceduralPrecondition()) continue;
+
+                foreach (var effect in action.GetEffects())
+                {
+                    if (conditionsMet.ContainsKey(effect.Key) && effect.Value.Equals(goal.GetConditions()[effect.Key]))
+                    {
+                        conditionsMet[effect.Key] = true;
+                    }
+                }
+            }
+
+            return !conditionsMet.ContainsValue(false);
         }
     }
 }

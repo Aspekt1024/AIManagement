@@ -16,7 +16,7 @@ namespace Aspekt.AI
         private Action SuccessCallback;
         private Action FailureCallback;
 
-        public AIAction()
+        private void Awake()
         {
             SetPreconditions();
             SetEffects();

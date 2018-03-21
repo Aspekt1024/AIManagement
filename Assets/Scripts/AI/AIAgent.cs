@@ -13,13 +13,12 @@ namespace Aspekt.AI
 
         private AIGoal[] goals;
         private AIAction[] actions;
+        private AISensor[] sensors;
 
         private AIMemory memory;
         private AIPlanner planner;
         private AIExecutor executor;
-
-        private AISensor[] sensors;
-
+        
         private enum States
         {
             Stopped, Active, Paused, FindNewGoal
