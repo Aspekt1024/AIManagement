@@ -14,6 +14,10 @@ namespace Aspekt.AI
             {
                 return state[label] == value;
             }
+            else if (value.GetType().Equals(typeof(bool)))
+            {
+                return value.Equals(false);
+            }
             else
             {
                 return false;

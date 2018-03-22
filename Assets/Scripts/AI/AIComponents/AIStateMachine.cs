@@ -80,6 +80,11 @@ namespace Aspekt.AI
 
         private void SetIdleState()
         {
+            if (stateQueue.Count > 0)
+            {
+                GotoNextState();
+                return;
+            }
             IdleState initialState = AddState<IdleState>();
             initialState.OnComplete += StateCompleted;
             initialState.Enter();
@@ -95,6 +100,7 @@ namespace Aspekt.AI
             else
             {
                 if (OnComplete != null) OnComplete();
+                currentState.OnComplete -= StateCompleted;
                 SetIdleState();
             }
         }

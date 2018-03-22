@@ -50,6 +50,7 @@ namespace Aspekt.AI.Planning
         
         private void InitialiseNodeLists(AIAgent agent, AIPlanner planner)
         {
+            nullNodes = new List<AINode>();
             openNodes = new List<AINode>();
             closedNodes = new List<AINode>();
 
@@ -66,12 +67,13 @@ namespace Aspekt.AI.Planning
         {
             for (int i = nullNodes.Count - 1; i >= 0; i--)
             {
+                if (!nullNodes[i].GetAction().CheckProceduralPrecondition()) continue;
+
                 if (AchievesPrecondition(nullNodes[i]))
                 {
                     nullNodes[i].Update(currentNode);
                     openNodes.Add(nullNodes[i]);
                     nullNodes.Remove(nullNodes[i]);
-
                 }
             }
         }

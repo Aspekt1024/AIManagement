@@ -3,6 +3,7 @@ namespace TestUnitLabels
 {
     public enum AILabels
     {
-        TargetReached, ObjectHeld
+        TargetReached, ObjectHeld,
+        HasWood, SellWood
     }
 }

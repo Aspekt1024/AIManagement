@@ -82,7 +82,22 @@ namespace Aspekt.AI.Planning
 
         public bool ConditionsMet()
         {
-            return state.GetPreconditions().Count == 0;
+            bool conditionsMet = state.GetPreconditions().Count == 0;
+
+            if (!conditionsMet)
+            {
+                conditionsMet = true;
+                foreach (var precondition in state.GetPreconditions())
+                {
+                    if (!agent.GetMemory().ConditionMet(precondition.Key, precondition.Value))
+                    {
+                        conditionsMet = false;
+                        break;
+                    }
+                }
+            }
+
+            return conditionsMet;
         }
 
         public float GetFCost()
