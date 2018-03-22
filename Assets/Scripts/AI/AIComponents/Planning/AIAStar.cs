@@ -6,6 +6,7 @@ namespace Aspekt.AI.Planning
 {
     public class AIAStar
     {
+        private List<AINode> nullNodes = new List<AINode>();
         private List<AINode> openNodes = new List<AINode>();
         private List<AINode> closedNodes = new List<AINode>();
 
@@ -13,24 +14,11 @@ namespace Aspekt.AI.Planning
 
         public bool FindActionPlan(AIAgent agent, AIPlanner planner)
         {
-            openNodes = new List<AINode>();
-            closedNodes = new List<AINode>();
+            InitialiseNodeLists(agent, planner);
 
-            currentNode = new AINode(agent, planner);
-            closedNodes.Add(currentNode);
-
-            while(!currentNode.ConditionsMet())
+            while (!currentNode.ConditionsMet())
             {
-                foreach (var action in agent.GetActions())
-                {
-                    if (ActionNotInClosedNodeList(action) && ActionAchievesPrecondition(action))
-                    {
-                        if (!UpdateActionInOpenList(action))
-                        {
-                            openNodes.Add(new AINode(agent, planner, action, currentNode));
-                        }
-                    }
-                }
+                FindNeighbouringNodes();
 
                 if (openNodes.Count == 0) return false;
 
@@ -38,7 +26,7 @@ namespace Aspekt.AI.Planning
                 closedNodes.Add(currentNode);
                 openNodes.Remove(currentNode);
             }
-            
+
             return true;
         }
 
@@ -59,43 +47,45 @@ namespace Aspekt.AI.Planning
 
             return actionPlan;
         }
-
-
-        private bool ActionAchievesPrecondition(AIAction action)
+        
+        private void InitialiseNodeLists(AIAgent agent, AIPlanner planner)
         {
-            foreach (var precondition in currentNode.GetState().GetPreconditions())
+            openNodes = new List<AINode>();
+            closedNodes = new List<AINode>();
+
+            currentNode = new AINode(agent, planner);
+            closedNodes.Add(currentNode);
+
+            foreach (var action in agent.GetActions())
             {
-                if (action.GetEffects().ContainsKey(precondition.Key) && action.GetEffects()[precondition.Key].Equals(precondition.Value))
+                nullNodes.Add(new AINode(agent, planner, action));
+            }
+        }
+        
+        private void FindNeighbouringNodes()
+        {
+            for (int i = nullNodes.Count - 1; i >= 0; i--)
+            {
+                if (AchievesPrecondition(nullNodes[i]))
+                {
+                    nullNodes[i].Update(currentNode);
+                    openNodes.Add(nullNodes[i]);
+                    nullNodes.Remove(nullNodes[i]);
+
+                }
+            }
+        }
+
+        private bool AchievesPrecondition(AINode node)
+        {
+            foreach (var effect in node.GetAction().GetEffects())
+            {
+                if (currentNode.GetState().GetPreconditions().ContainsKey(effect.Key) && currentNode.GetState().GetPreconditions()[effect.Key].Equals(effect.Value))
                 {
                     return true;
                 }
             }
             return false;
-        }
-
-        private bool UpdateActionInOpenList(AIAction action)
-        {
-            foreach (var node in openNodes)
-            {
-                if (node.GetAction() == action)
-                {
-                    node.Update(currentNode);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private bool ActionNotInClosedNodeList(AIAction action)
-        {
-            foreach (var node in closedNodes)
-            {
-                if (node.GetAction() == action)
-                {
-                    return false;
-                }
-            }
-            return true;
         }
 
         private AINode FindCheapestNode()

@@ -10,6 +10,10 @@ namespace Aspekt.AI.Planning
         private Dictionary<string, object> effects = new Dictionary<string, object>();
         private Dictionary<string, object> preconditions = new Dictionary<string, object>();
 
+        public AIState()
+        {
+        }
+
         public AIState(AIGoal goal, Dictionary<string, object> newState)
         {
             preconditions = new Dictionary<string, object>(goal.GetConditions());

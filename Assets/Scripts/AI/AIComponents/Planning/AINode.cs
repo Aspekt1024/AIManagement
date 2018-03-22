@@ -22,20 +22,19 @@ namespace Aspekt.AI.Planning
             this.action = action;
             this.parent = parent;
 
-            if (parent == null)
+            if (action == null)
             {
-                // This is the goal node
+                // This is a goal node
                 state = new AIState(planner.GetGoal(), agent.GetMemory().CloneState());
                 state.AddUnmetPreconditions(planner.GetGoal().GetConditions());
                 g = 0;
             }
             else
             {
-                // This is an action node
-                SetNodeActionDetails();
+                // Initialise Action node
+                state = new AIState();
+                g = float.MaxValue;
             }
-
-            h = GetNumUnmetPreconditions();
         }
 
         public void Update(AINode newParent)
@@ -53,6 +52,7 @@ namespace Aspekt.AI.Planning
             state = parent.CloneState();
             state.ClearMetPreconditions(action.GetEffects());
             state.AddUnmetPreconditions(action.GetPreconditions());
+            h = GetNumUnmetPreconditions();
         }
 
         private int GetNumUnmetPreconditions()
